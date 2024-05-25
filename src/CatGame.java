@@ -111,6 +111,35 @@ public class CatGame extends GameEngine {
 
     }
 
+    //====================================== MICE INITIALIZATION AND FUNCTIONS =====================================
+
+    /*
+    I was thinking of 3 mices walking back and forth at different island terrain
+     */
+    Image miceSpriteSheet;
+    Image[] miceImages;
+    int miceCurrentFrame;
+
+    public void initMice(){
+        miceImages = new Image[4];
+        miceSpriteSheet = loadImage("Assets/Rat/walk.png");
+        for(int iy = 0; iy < 1; iy++){
+            for(int ix = 0; ix < 4; ix++){
+                miceImages[iy * 4 + ix] = subImage(miceSpriteSheet, ix * 32, iy * 32, 32, 32);
+            }
+        }
+    }
+
+    public void updateMice(){
+        miceCurrentFrame = (int) ((animateTime / 0.1) % 4);
+    }
+
+    /* It looks like to align mice with the surface of the terrain I need to set mice Y position to 0
+    Not sure why I can't set it at 120 - I think it's because the height of the mice is already 120 so
+     the rendering need to compensate */
+    public void drawMice(){
+        drawImage(miceImages[miceCurrentFrame], 120, 0, 120, 120);
+    }
     //======================================PORTAL INITIALIZATION AND FUNCTIONS =====================================
 
     Image portalSpriteSheet;
@@ -257,7 +286,6 @@ public class CatGame extends GameEngine {
         }
     }
 
-    //=========================================== MICE  INITIALIZATION AND FUNCTIONS  ============================
 
 
 
@@ -269,6 +297,9 @@ public class CatGame extends GameEngine {
 
     // Terrain
         initTerrain();
+
+    // Mice
+        initMice();
 
     // Portal
         initPortal();
@@ -282,6 +313,9 @@ public class CatGame extends GameEngine {
 
     public void update(double dt) {
         animateTime += dt;
+
+        // Mice update
+        updateMice();
 
         // Portal update
         updatePortal();
@@ -306,6 +340,9 @@ public class CatGame extends GameEngine {
 
         // Draw terrain
         drawTerrain();
+
+        // Draw Mice
+        drawMice();
 
 
         //Draw Portal
