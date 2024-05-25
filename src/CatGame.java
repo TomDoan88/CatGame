@@ -145,11 +145,17 @@ public class CatGame extends GameEngine {
 
     //=========================================== CAT INITIALIZATION AND FUNCTIONS  ============================
 
+
+
     Image catSpriteSheet;
     Image[] catImages;
     int catCurrentFrame;
     boolean isCatMoving = false;
     boolean turnLeft, turnRight;
+
+    double catPositionX, getCatPositionY;
+    double catVelocityX = 1, catVelocityY = 480;
+
 
 
     // render cat idle if cat moving = false;
@@ -173,21 +179,85 @@ public class CatGame extends GameEngine {
         }
     }
 
-    public void updateCat(){
+    public void updateCat(double dt){
+        if(turnRight){
+            catPositionX += catVelocityX * dt * 350;
+            System.out.println("CAT POSIITIONX" + catPositionX);
+        }
+
         catCurrentFrame = (int) ((animateTime / 0.1) % 4);
     }
 
     public void drawCat(){
-        drawImage(catImages[catCurrentFrame], 78, 480, 170, 170 );
+        //saveCurrentTransform();
+        //translate(catPositionX, catVelocityY);
+        drawImage(catImages[catCurrentFrame], catPositionX, 480, 170, 170 );
+
+        //restoreLastTransform();
+
     }
 
-    // Running cat image rendering
+    //=========================================== BIRD  INITIALIZATION AND FUNCTIONS  ============================
+
+    /*
+    Bird flying randomly  inside the box of x1=350 x2=795 --- y1=0 y2=150
+    In the sky and
+     */
+    Image  birdSpriteSheet;
+    Image[] birdImages;
+    int birdCurrentFrame;
+    double birdPositionX = 650, birdPositionY = 150;
+    double birdVelocityX = 1, birdVelocityY = 1;
+    boolean birdFacingRightDirection; // If flyLimit = true we render the reverse the image for bird to turn around
+
+    public void initBird(){
+        birdImages = new Image[6];
+        birdSpriteSheet = loadImage("Assets/Bird/Walk.png");
+        for(int iy = 0; iy < 1; iy++){
+            for(int ix = 0; ix < 6; ix++){
+                birdImages[iy * 6 + ix] = subImage(birdSpriteSheet, ix * 32, iy * 32, 32, 32);
+            }
+        }
+    }
+
+    public void updateBird(double dt){
 
 
+        birdPositionX += birdVelocityX * dt * 100;
+        birdPositionY += birdVelocityY * dt * 100;
+
+        // Check boundaries and reverse direction if needed
+        if (birdPositionX < 350) {
+            birdPositionX = 350;
+            birdVelocityX = Math.abs(birdVelocityX); // Reverse to positive direction
+            birdFacingRightDirection = true;
+        } else if (birdPositionX > 700) {
+            birdPositionX = 700;
+            birdVelocityX = -Math.abs(birdVelocityX); // Reverse to negative direction
+            birdFacingRightDirection = false;
+        }
+
+        if (birdPositionY < -55) {
+            birdPositionY = -55;
+            birdVelocityY = Math.abs(birdVelocityY); // Reverse to positive direction
+        } else if (birdPositionY > 150) {
+            birdPositionY = 150;
+            birdVelocityY = -Math.abs(birdVelocityY); // Reverse to negative direction
+        }
+
+        birdCurrentFrame = (int) ((animateTime / 0.1) % 6);
+    }
 
 
+    public void drawBird(){
+        if(birdFacingRightDirection){
+            drawImage(birdImages[birdCurrentFrame], birdPositionX, birdPositionY, 100,  100 );
+        } else {
+            drawImage(birdImages[birdCurrentFrame], birdPositionX, birdPositionY, -100,  100 );
+        }
+    }
 
-
+    //=========================================== MICE  INITIALIZATION AND FUNCTIONS  ============================
 
 
 
@@ -205,6 +275,9 @@ public class CatGame extends GameEngine {
 
     // Cat
         initCat();
+
+   // Bird
+       initBird();
     }
 
     public void update(double dt) {
@@ -214,7 +287,10 @@ public class CatGame extends GameEngine {
         updatePortal();
 
         // Cat update
-        updateCat();;
+        updateCat(dt);;
+
+        // Bird update
+       updateBird(dt);
     }
     public void paintComponent(){
         //drawImage(backGround,0, 0);
@@ -238,12 +314,15 @@ public class CatGame extends GameEngine {
         // Draw Cat
         drawCat();
 
+        // Draw Bird
+        drawBird();
+
     }
 
     public void keyPressed(KeyEvent e) {
                 if(e.getKeyCode() == KeyEvent.VK_RIGHT){
                     isCatMoving = true;
-                    System.out.println("REGISTERING");
+                    turnRight = true;
                     initCat();
                 }
     }
@@ -251,7 +330,7 @@ public class CatGame extends GameEngine {
     public void keyReleased(KeyEvent e){
         if(e.getKeyCode() == KeyEvent.VK_RIGHT){
             isCatMoving = false;
-            System.out.println("RELEASED");
+            turnRight = false;
             initCat();
         }
     }
