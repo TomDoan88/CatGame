@@ -18,8 +18,9 @@ public class CatGame extends GameEngine {
     You would need to import the game engine from my Github or attempt to change the dimension explicitly.
 
 
-    */
+    /*
 
+    */
     // Common variables to be used for all assets
     double animateTime;
 
@@ -174,16 +175,18 @@ public class CatGame extends GameEngine {
 
     //=========================================== CAT INITIALIZATION AND FUNCTIONS  ============================
 
-
+    AudioClip running = loadAudio("running.wav");
 
     Image catSpriteSheet;
     Image[] catImages;
     int catCurrentFrame;
     boolean isCatMoving = false;
-    boolean turnLeft, turnRight;
+    boolean turnLeft, turnRight, leftDirection, jumping, canJump;
 
-    double catPositionX, getCatPositionY;
-    double catVelocityX = 1, catVelocityY = 480;
+    double catPositionX, catPositionY = 520;
+    double catVelocityX = 1, catVelocityY = 1;
+    int maxJumpHeight = 100; // Adjust this jump height if needed
+    double friction = 2;
 
 
 
@@ -208,19 +211,58 @@ public class CatGame extends GameEngine {
         }
     }
 
-    public void updateCat(double dt){
-        if(turnRight){
+    public void updateCat(double dt) {
+
+        // This is the boundary Check
+        if (turnRight) {
             catPositionX += catVelocityX * dt * 350;
-            System.out.println("CAT POSIITIONX" + catPositionX);
+            if (catPositionX >= width()- 170) {
+                catPositionX = 980;
+            }
+        }
+        else if (turnLeft && isCatMoving) {
+            catPositionX -= catVelocityX * dt * 350;
+            if (catPositionX <= 140) {
+                catPositionX = 140;
+            }
+        } else if(catPositionY > 520){
+            catPositionY = 520;
         }
 
+    // This is for jumping velocity and friction
+        if (jumping && !leftDirection) {
+            catPositionX += catVelocityX * dt * 100;
+//            catPositionY -= catVelocityY * dt * 1000;
+            catPositionY -= 50;
+
+            //catPositionY += dt + friction;
+        } else if (jumping && leftDirection) {
+            catPositionX -= catVelocityX * dt * 100;
+            //catPositionY -= catVelocityY * dt * 1000;
+            catPositionY -= 50;
+
+            //catPositionY -= dt + friction;
+        } else if (!jumping && catPositionY < 520) {
+            catPositionX += catVelocityX * dt * 100;
+            catPositionY += catVelocityY * dt * 1000;
+        }
+
+        // Animation frame update logic
         catCurrentFrame = (int) ((animateTime / 0.1) % 4);
     }
 
     public void drawCat(){
-        //saveCurrentTransform();
-        //translate(catPositionX, catVelocityY);
-        drawImage(catImages[catCurrentFrame], catPositionX, 480, 170, 170 );
+        /*
+        * OPTIMIZE LATER IF HAVE TIME
+        * Cat stand still needs to face the right direction
+        * */
+
+        if(leftDirection ){
+            drawImage(catImages[catCurrentFrame], catPositionX, catPositionY, -130, 130 );
+        } else {
+            drawImage(catImages[catCurrentFrame], catPositionX, catPositionY, 130, 130 );
+        }
+
 
         //restoreLastTransform();
 
@@ -309,6 +351,8 @@ public class CatGame extends GameEngine {
 
    // Bird
        initBird();
+
+
     }
 
     public void update(double dt) {
@@ -360,15 +404,38 @@ public class CatGame extends GameEngine {
                 if(e.getKeyCode() == KeyEvent.VK_RIGHT){
                     isCatMoving = true;
                     turnRight = true;
+                    leftDirection = false;
+                    //playAudio(running);
                     initCat();
+                }
+                if(e.getKeyCode() == KeyEvent.VK_LEFT){
+                    isCatMoving = true;
+                    turnLeft = true;
+                    leftDirection = true;
+                    initCat();
+                }
+                if(e.getKeyCode() == KeyEvent.VK_SPACE){
+                    jumping = true;
                 }
     }
 
-    public void keyReleased(KeyEvent e){
-        if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
             isCatMoving = false;
             turnRight = false;
+            canJump = false;
             initCat();
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_LEFT && canJump ) {
+            isCatMoving = false;
+            turnLeft = false;
+            initCat();
+        }
+        if(e.getKeyCode() == KeyEvent.VK_SPACE){
+            jumping = false;
+            canJump = true;
         }
     }
 }
